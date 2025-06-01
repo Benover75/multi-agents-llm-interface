@@ -76,27 +76,7 @@ Ollama Settings
 pythonOLLAMA_BASE_URL = "<http://localhost:11434>"
 MAX_TOKENS = 2048
 TEMPERATURE = 0.7
-📁 Project Structure
-multi-agent-llm-interface/
-├── index.html              # Main frontend interface
-├── README.md              # This file
-├── requirements.txt       # Python dependencies
-├── backend/
-│   ├── app.py            # Flask/FastAPI server
-│   ├── config.py         # Configuration settings
-│   ├── agents/           # Agent logic
-│   │   ├── research_bot.py
-│   │   ├── creative_bot.py
-│   │   ├── resume_bot.py
-│   │   └── summary_bot.py
-│   └── utils/
-│       ├── file_handler.py
-│       └── ollama_client.py
-└── assets/
-    ├── css/
-    ├── js/
-    └── fonts/
-🎯 Usage
+
 
 Select an Agent: Click on any agent card to expand it
 Upload Files (optional): Upload PDF or TXT files for context
