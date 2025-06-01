@@ -98,20 +98,6 @@ Backend Development
 bash# Install development dependencies
 pip install -r requirements-dev.txt
 
-# Run with hot reload
-
-python backend/app.py --debug
-
-# Run tests
-
-pytest backend/tests/
-Frontend Development
-The frontend uses vanilla HTML/CSS/JavaScript with:
-
-TailwindCSS for styling
-Font Awesome for icons
-Custom CSS animations
-No build process required
 
 🚀 Deployment
 Local Network Access
