@@ -62,15 +62,7 @@ python -m http.server 8080
 
 # Then visit <http://localhost:8080>
 
-🏗️ Architecture
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Ollama        │
-│   (HTML/JS)     │◄──►│   (Flask/FastAPI)│◄──►│   (Local LLMs)  │
-│                 │    │                 │    │                 │
-│ • Agent Cards   │    │ • API Routes    │    │ • tinyllama     │
-│ • File Upload   │    │ • Model Logic   │    │ • tinydolphin   │
-│ • Animations    │    │ • File Handling │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+
 🔧 Configuration
 Model Assignments
 Edit backend/config.py to customize which models power each agent:
