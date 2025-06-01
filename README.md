@@ -37,24 +37,6 @@ bash# Pull the required models
 ollama pull tinyllama:latest
 ollama pull tinydolphin:latest
 
-# Verify models are installed
-
-ollama list
-2. Clone and Setup
-bash# Clone the repository
-git clone <your-repo-url>
-cd multi-agent-llm-interface
-
-# Install Python dependencies
-
-pip install -r requirements.txt
-3. Start the Backend Server
-bash# Start the Flask backend
-python backend/app.py
-4. Open the Frontend
-Open index.html in your web browser or serve it with a local server:
-bash# Option 1: Direct file access
-open index.html
 
 # Option 2: Python HTTP server
 
