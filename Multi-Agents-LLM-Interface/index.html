@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent LLM Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Tint&family=Nabla:EDPT@115&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary-yellow: #ffd60a;
+            --chat-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --text-primary: #e0f7fa;
+            --text-secondary: #a9d6e5;
+            --border-color: #333;
+            --gradient-1: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --gradient-2: linear-gradient(45deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bungee Tint', sans-serif;
+            background: var(--gradient-2);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-1);
+            z-index: -2;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--primary-yellow);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background: var(--gradient-1); }
+            50% { background: linear-gradient(135deg, #2c5364 0%, #0f2027 50%, #203a43 100%); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.1; }
+            90% { opacity: 0.1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse3D {
+            0%, 100% { transform: scale(1) rotateY(0deg); }
+            50% { transform: scale(1.05) rotateY(5deg); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 214, 10, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 214, 10, 0.6); }
+        }
+
+        .nabla-title {
+            font-family: "Nabla", system-ui;
+            font-optical-sizing: auto;
+            font-weight: 400;
+            font-style: normal;
+            font-variation-settings: "EDPT" 115, "EHLT" 16;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .robot-emoji {
+            font-size: 4rem;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+            filter: drop-shadow(0 0 10px rgba(255, 214, 10, 0.3));
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, var(--primary-yellow), #ff8500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .agent-card {
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: slideIn 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 214, 10, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .agent-card:hover::before {
+            left: 100%;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--primary-yellow);
+            box-shadow: 0 15px 40px rgba(255, 214, 10, 0.2);
+        }
+
+        .agent-icon {
+            font-size: 3rem;
+            color: var(--primary-yellow);
+        }
+
+        .modern-input {
+            background: rgba(17, 17, 17, 0.9);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modern-input:focus {
+            outline: none;
+            border-color: var(--primary-yellow);
+            box-shadow: 0 0 20px rgba(255, 214, 10, 0.3);
+            background: rgba(17, 17, 17, 1);
+        }
+
+        .yellow-btn {
+            background: linear-gradient(45deg, var(--primary-yellow), #ff8500);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-family: 'Bungee Tint', sans-serif;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yellow-btn:hover {
+            transform: translateY(-2px);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .yellow-btn:active {
+            transform: translateY(0);
+        }
+
+        .response-area {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            backdrop-filter: blur(10px);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-yellow);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background: rgba(17, 17, 17, 0.5);
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-yellow);
+            background: rgba(17, 17, 17, 0.8);
+        }
+
+        .agent-header {
+            background: linear-gradient(45deg, rgba(255, 214, 10, 0.1), rgba(255, 133, 0, 0.1));
+            border-radius: 15px 15px 0 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .expand-btn {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-btn.expanded {
+            transform: rotate(180deg);
+        }
+
+        .modal {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .nabla-title { font-size: 2rem; }
+            .agent-icon { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="min-h-screen p-4 relative z-10">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 py-8">
+                <h1 class="nabla-title mb-4">
+                    <span class="robot-emoji">🤖</span> 
+                    <span class="gradient-text">Multi-Agent LLM Interface</span>
+                </h1>
+                <p class="text-lg text-gray-300 font-light">Talk to specialized agents powered by TinyLLaMA 🦥 and TinyDolphin 🐬</p>
+            </div>
+
+            <!-- Agents Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Research Bot -->
+                <div class="agent-card p-6" data-agent="ResearchBot">
+                    <div class="agent-header p-4 -m-6 mb-4">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleAgent('research')">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-brain agent-icon"></i>
+                                <div>
+                                    <h3 class="text-xl font-bold text-yellow-400">ResearchBot</h3>
+                                    <p class="text-sm text-gray-400">Ask detailed technical or academic questions</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down expand-btn text-yellow-400" id="research-expand"></i>
+                        </div>
+                    </div>
+                    <div class="agent-content hidden" id="research-content">
+                        <div class="space-y-4">
+                            <div class="file-upload-area p-4 text-center">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-yellow-400 mb-2"></i>
+                                <input type="file" id="research-file" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload('research')">
+                                <button onclick="document.getElementById('research-file').click()" class="yellow-btn px-4 py-2">
+                                    <i class="fas fa-upload mr-2"></i>Upload PDF/TXT
+                                </button>
+                                <p class="text-sm text-gray-400 mt-2">Upload documents to analyze</p>
+                            </div>
+                            <textarea id="research-prompt" placeholder="Enter your research question..." class="modern-input w-full p-4 h-32 resize-none"></textarea>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="research-append" class="w-4 h-4">
+                                <label for="research-append" class="text-sm text-gray-300">Append file content to prompt</label>
+                            </div>
+                            <button onclick="askAgent('ResearchBot', 'research')" class="yellow-btn w-full py-3">
+                                <i class="fas fa-paper-plane mr-2"></i>Ask ResearchBot
+                            </button>
+                            <div id="research-response" class="response-area p-4 min-h-32 hidden"></div>
+                            <button id="research-download" onclick="downloadPDF('research')" class="yellow-btn w-full py-2 hidden">
+                                <i class="fas fa-download mr-2"></i>Download Response as PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Creative Bot -->
+                <div class="agent-card p-6" data-agent="CreativeBot">
+                    <div class="agent-header p-4 -m-6 mb-4">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleAgent('creative')">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-lightbulb agent-icon"></i>
+                                <div>
+                                    <h3 class="text-xl font-bold text-yellow-400">CreativeBot</h3>
+                                    <p class="text-sm text-gray-400">Generate stories, poems, or imaginative content</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down expand-btn text-yellow-400" id="creative-expand"></i>
+                        </div>
+                    </div>
+                    <div class="agent-content hidden" id="creative-content">
+                        <div class="space-y-4">
+                            <div class="file-upload-area p-4 text-center">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-yellow-400 mb-2"></i>
+                                <input type="file" id="creative-file" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload('creative')">
+                                <button onclick="document.getElementById('creative-file').click()" class="yellow-btn px-4 py-2">
+                                    <i class="fas fa-upload mr-2"></i>Upload PDF/TXT
+                                </button>
+                                <p class="text-sm text-gray-400 mt-2">Upload inspiration materials</p>
+                            </div>
+                            <textarea id="creative-prompt" placeholder="Describe what you want me to create..." class="modern-input w-full p-4 h-32 resize-none"></textarea>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="creative-append" class="w-4 h-4">
+                                <label for="creative-append" class="text-sm text-gray-300">Append file content to prompt</label>
+                            </div>
+                            <button onclick="askAgent('CreativeBot', 'creative')" class="yellow-btn w-full py-3">
+                                <i class="fas fa-magic mr-2"></i>Ask CreativeBot
+                            </button>
+                            <div id="creative-response" class="response-area p-4 min-h-32 hidden"></div>
+                            <button id="creative-download" onclick="downloadPDF('creative')" class="yellow-btn w-full py-2 hidden">
+                                <i class="fas fa-download mr-2"></i>Download Response as PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resume Bot -->
+                <div class="agent-card p-6" data-agent="ResumeBot">
+                    <div class="agent-header p-4 -m-6 mb-4">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleAgent('resume')">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-briefcase agent-icon"></i>
+                                <div>
+                                    <h3 class="text-xl font-bold text-yellow-400">ResumeBot</h3>
+                                    <p class="text-sm text-gray-400">Get resume feedback or assistance writing resumes</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down expand-btn text-yellow-400" id="resume-expand"></i>
+                        </div>
+                    </div>
+                    <div class="agent-content hidden" id="resume-content">
+                        <div class="space-y-4">
+                            <div class="file-upload-area p-4 text-center">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-yellow-400 mb-2"></i>
+                                <input type="file" id="resume-file" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload('resume')">
+                                <button onclick="document.getElementById('resume-file').click()" class="yellow-btn px-4 py-2">
+                                    <i class="fas fa-upload mr-2"></i>Upload Resume
+                                </button>
+                                <p class="text-sm text-gray-400 mt-2">Upload your current resume</p>
+                            </div>
+                            <textarea id="resume-prompt" placeholder="Ask for resume feedback or help..." class="modern-input w-full p-4 h-32 resize-none"></textarea>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="resume-append" class="w-4 h-4">
+                                <label for="resume-append" class="text-sm text-gray-300">Append file content to prompt</label>
+                            </div>
+                            <button onclick="askAgent('ResumeBot', 'resume')" class="yellow-btn w-full py-3">
+                                <i class="fas fa-user-tie mr-2"></i>Ask ResumeBot
+                            </button>
+                            <div id="resume-response" class="response-area p-4 min-h-32 hidden"></div>
+                            <button id="resume-download" onclick="downloadPDF('resume')" class="yellow-btn w-full py-2 hidden">
+                                <i class="fas fa-download mr-2"></i>Download Response as PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Bot -->
+                <div class="agent-card p-6" data-agent="SummaryBot">
+                    <div class="agent-header p-4 -m-6 mb-4">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleAgent('summary')">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-list-alt agent-icon"></i>
+                                <div>
+                                    <h3 class="text-xl font-bold text-yellow-400">SummaryBot</h3>
+                                    <p class="text-sm text-gray-400">Summarize long texts into plain English</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down expand-btn text-yellow-400" id="summary-expand"></i>
+                        </div>
+                    </div>
+                    <div class="agent-content hidden" id="summary-content">
+                        <div class="space-y-4">
+                            <div class="file-upload-area p-4 text-center">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-yellow-400 mb-2"></i>
+                                <input type="file" id="summary-file" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload('summary')">
+                                <button onclick="document.getElementById('summary-file').click()" class="yellow-btn px-4 py-2">
+                                    <i class="fas fa-upload mr-2"></i>Upload Document
+                                </button>
+                                <p class="text-sm text-gray-400 mt-2">Upload document to summarize</p>
+                            </div>
+                            <textarea id="summary-prompt" placeholder="Enter text to summarize or ask for analysis..." class="modern-input w-full p-4 h-32 resize-none"></textarea>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="summary-append" class="w-4 h-4">
+                                <label for="summary-append" class="text-sm text-gray-300">Append file content to prompt</label>
+                            </div>
+                            <button onclick="askAgent('SummaryBot', 'summary')" class="yellow-btn w-full py-3">
+                                <i class="fas fa-list-ul mr-2"></i>Ask SummaryBot
+                            </button>
+                            <div id="summary-response" class="response-area p-4 min-h-32 hidden"></div>
+                            <button id="summary-download" onclick="downloadPDF('summary')" class="yellow-btn w-full py-2 hidden">
+                                <i class="fas fa-download mr-2"></i>Download Response as PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-yellow-400 text-black px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Floating particles animation
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = Math.random() * 10 + 15 + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // File storage
+        const fileContents = {};
+
+        // Toggle agent expansion
+        function toggleAgent(agentId) {
+            const content = document.getElementById(`${agentId}-content`);
+            const expand = document.getElementById(`${agentId}-expand`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                expand.classList.add('expanded');
+            } else {
+                content.classList.add('hidden');
+                expand.classList.remove('expanded');
+            }
+        }
+
+        // Handle file upload
+        function handleFileUpload(agentId) {
+            const fileInput = document.getElementById(`${agentId}-file`);
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.type === 'application/pdf') {
+                        fileContents[agentId] = 'PDF content loaded (simulated)';
+                        showToast('PDF file loaded successfully!');
+                    } else {
+                        fileContents[agentId] = e.target.result;
+                        showToast('Text file loaded successfully!');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Ask agent function
+        async function askAgent(agent, agentId) {
+            const promptElement = document.getElementById(`${agentId}-prompt`);
+            const responseElement = document.getElementById(`${agentId}-response`);
+            const downloadBtn = document.getElementById(`${agentId}-download`);
+            const appendCheckbox = document.getElementById(`${agentId}-append`);
+            
+            let prompt = promptElement.value.trim();
+            const fileContent = fileContents[agentId] || '';
+            
+            if (!prompt && !fileContent) {
+                showToast('Please enter a prompt or upload a file!', 'error');
+                return;
+            }
+
+            if (appendCheckbox.checked && fileContent) {
+                prompt += `\n\n[BEGIN FILE CONTENT]\n${fileContent}\n[END FILE CONTENT]`;
+            }
+
+            // Show loading state
+            responseElement.classList.remove('hidden');
+            responseElement.innerHTML = `
+                <div class="flex items-center space-x-2 text-yellow-400">
+                    <div class="loading-spinner"></div>
+                    <span>${agent} is thinking...</span>
+                </div>
+            `;
+
+            try {
+                // Simulate API call (replace with actual backend call)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Simulated response
+                const mockResponse = generateMockResponse(agent, prompt);
+                
+                responseElement.innerHTML = mockResponse;
+                downloadBtn.classList.remove('hidden');
+                
+                showToast(`${agent} responded successfully!`);
+                
+            } catch (error) {
+                responseElement.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+                showToast('Connection error occurred!', 'error');
+            }
+        }
+
+        // Generate mock response based on agent type
+        function generateMockResponse(agent, prompt) {
+            const responses = {
+                'ResearchBot': `📊 Research Analysis:
+
+Based on your query: "${prompt.substring(0, 100)}..."
+
+Key findings:
+• Comprehensive analysis completed
+• Multiple data sources evaluated
+• Statistical significance confirmed
+• Peer-reviewed references included
+
+Technical details:
+- Methodology: Quantitative analysis
+- Sample size: N = 1,247
+- Confidence interval: 95%
+- P-value: < 0.001
+
+Recommendations:
+1. Further investigation recommended
+2. Additional peer review suggested
+3. Implementation feasibility: High
+
+References: [1] Academic Source 2024, [2] Research Journal 2024`,
+
+                'CreativeBot': `✨ Creative Output:
+
+Inspired by: "${prompt.substring(0, 100)}..."
+
+🎨 Generated Content:
+
+In the realm where imagination meets reality, a story unfolds...
+
+The golden threads of dawn weave through crystalline windows,
+Casting shadows that dance like forgotten dreams.
+Each whisper of wind carries tales untold,
+Of heroes born from starlight and hope.
+
+Creative elements:
+• Metaphorical imagery ✓
+• Emotional resonance ✓
+• Vivid descriptions ✓
+• Engaging narrative ✓
+
+Alternative concepts:
+- Sci-fi adventure variant
+- Romance subplot integration
+- Mystery element addition
+- Fantasy world expansion`,
+
+                'ResumeBot': `📋 Resume Analysis & Recommendations:
+
+Resume Review for: "${prompt.substring(0, 100)}..."
+
+🎯 Strengths Identified:
+• Strong technical skills section
+• Relevant work experience
+• Clear educational background
+• Professional formatting
+
+⚡ Areas for Improvement:
+• Add quantifiable achievements
+• Include action verbs
+• Optimize keyword density
+• Enhance summary statement
+
+📈 Recommended Changes:
+1. Lead with compelling summary
+2. Use metrics (increased X by Y%)
+3. Tailor to specific job roles
+4. Add relevant certifications
+
+🏆 ATS Optimization Score: 87/100
+✅ Professional formatting maintained
+✅ Industry keywords included
+✅ Contact information clear`,
+
+                'SummaryBot': `📝 Summary & Analysis:
+
+Document/Text: "${prompt.substring(0, 100)}..."
+
+🎯 Key Points:
+• Main concept clearly defined
+• Supporting arguments identified
+• Critical insights extracted
+• Actionable conclusions drawn
+
+📊 Summary (3 sentences):
+The primary focus centers on core principles and practical applications. Multiple perspectives are presented with supporting evidence and real-world examples. The conclusion emphasizes implementation strategies and measurable outcomes.
+
+🔍 Detailed Breakdown:
+- Introduction: Context setting
+- Body: Evidence presentation
+- Analysis: Critical evaluation
+- Conclusion: Actionable insights
+
+📈 Complexity Level: Intermediate
+⏱️ Reading Time: ~5 minutes
+🎓 Target Audience: General/Professional`
+            };
+
+            return responses[agent] || 'Response generated successfully.';
+        }
+
+        // Download PDF function
+        function downloadPDF(agentId) {
+            const responseElement = document.getElementById(`${agentId}-response`);
+            const content = responseElement.textContent || responseElement.innerText;
+            
+            // Create a simple text file download (simulating PDF)
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${agentId}_response.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Response downloaded successfully!');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toast.className = toast.className.replace('bg-yellow-400 text-black', 'bg-red-500 text-white');
+            } else {
+                toast.className = toast.className.replace('bg-red-500 text-white', 'bg-yellow-400 text-black');
+            }
+            
+            toast.classList.remove('translate-x-full');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Add staggered animation to cards
+            const cards = document.querySelectorAll('.agent-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+
+        // Add some interactivity to the title
+        document.querySelector('.nabla-title').addEventListener('click', function() {
+            this.style.animation = 'none';
+            setTimeout(() => {
+                this.style.animation = 'pulse3D 3s ease-in-out infinite';
+            }, 10);
+        });
+    </script>
+</body>
+</html>
